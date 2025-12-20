@@ -1,7 +1,7 @@
-function ucet(path, request) {
+async function ucet(path, request) {
     switch (path[0]) {
         case "prihlasit-se":
-            let json = JSON.parse(request.body);
+            let json = await (new Response(request.body).json());
             json.status = 200;
             return json;
         default:
@@ -17,7 +17,7 @@ export default {
         let response;
         switch (url[1]) {
             case "ucet":
-                response = ucet(url.slice(2), request);
+                response = await ucet(url.slice(2), request);
                 break;
         }
         if (response == null) { response = { error: "Nenalezeno", status: 404 }; }
