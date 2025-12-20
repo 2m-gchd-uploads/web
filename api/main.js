@@ -1,4 +1,4 @@
-import "./ucet.js"
+import { ucet } from "./ucet.js"
 
 export default {
   async fetch(request, env, ctx) {
