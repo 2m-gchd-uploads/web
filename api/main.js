@@ -1,3 +1,5 @@
+import "./ucet.js"
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url).pathname.split("/").slice(1);
