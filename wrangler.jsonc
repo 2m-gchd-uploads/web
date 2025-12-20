@@ -1,6 +1,7 @@
 {
   "name": "skolni-web",
   "main": "api/main.js",
+  "compatibility_date": "2025-12-20",
   "assets": {
     "directory": "./static",
     "binding": "ASSETS"
