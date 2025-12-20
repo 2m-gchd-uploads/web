@@ -1,0 +1,8 @@
+{
+  "name": "skolni-web",
+  "main": "api/main.js",
+  "assets": {
+    "directory": "./static",
+    "binding": "ASSETS"
+  }
+}
