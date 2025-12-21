@@ -20,7 +20,7 @@
       "store_id": "c794378cc38a4fa8a669132ce24cc13b",
       "secret_name": "2MGCHD_RESEND_API"
     }
-  ]
+  ],
   "observability": {
     "logs": {
       "enabled": true,
