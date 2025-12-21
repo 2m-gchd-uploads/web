@@ -18,7 +18,7 @@ async function ucet(path, json, env) {
             if (response.results.length == 0) { return {error: "Uživatel neexistuje", status: 401}; }
             let result = response.results[0];
 
-            let hash = new Uint8Array(await window.crypto.subtle.digest("SHA-256",
+            let hash = new Uint8Array(await crypto.subtle.digest("SHA-256",
                                 new TextEncoder().encode(json.password + result.Salt))).toHex();
             
             return {"hash": hash, "status": 200};
