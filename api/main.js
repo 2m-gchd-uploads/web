@@ -62,7 +62,7 @@ async function ucet(path, json, env) {
                 if (response.ok) {
                     return {status: 200};
                 } else {
-                    return {error: "Chyba při odesílání emailu", status: 500}
+                    return {error: "Chyba při odesílání emailu", status: response.status}
                 }
             } else {
                 return {error: "Neplatný email", status: 401};
