@@ -59,7 +59,7 @@ async function ucet(path, json, env) {
                 if (!error) {
                     return {status: 200};
                 } else {
-                    return {error: error, status: 500}
+                    return {error: error, key: env.RESEND_API_KEY.get(), status: 500}
                 }
             } else {
                 return {error: "Neplatný email", status: 401};
