@@ -36,7 +36,7 @@ async function ucet(path, json, env) {
         case "odhlasit-se":
             if (json.token == undefined) { return badRequest("Chybějící pole v požadavku"); }
             if ((await env.DB.prepare("DELETE FROM Token WHERE Token = ?")
-                        .bind(json.token).run()).changed_db) {
+                        .bind(json.token).run()).meta.changed_db) {
                 return {status: 200};
             } else {
                 return {error: "Neplatný token", status: 401};
