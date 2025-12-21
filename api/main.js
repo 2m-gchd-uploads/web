@@ -8,13 +8,15 @@ function makeResponse(jsonResponse) {
 function notFound() { return { error: "Nenalezeno", status: 404 }; }
 function badRequest(text) { return { error: text, status: 400 }; }
 
-function ucet(path, json) {
+async function ucet(path, json) {
     switch (path[0]) {
         case "prihlasit-se":
             if (json.email == undefined || json.password == undefined)
                                     { return badRequest("Chybějící pole v požadavku"); }
-            json.status = 200;
-            return json;
+            let response = await env.DB.prepare("SELECT UserId, HesloHash, Salt FROM Ucet WHERE Email = ?")
+                                                                            .bind(json.email).run();
+            response.status = 200;
+            return response;
         default:
             return notFound();
     }
@@ -33,7 +35,7 @@ export default {
 
         switch (url[1]) {
             case "ucet":
-                return makeResponse(ucet(url.slice(2), json));
+                return makeResponse(await ucet(url.slice(2), json));
             default:
                 return makeResponse(notFound());
         }
