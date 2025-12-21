@@ -33,6 +33,12 @@ async function ucet(path, json, env) {
             }
             
             return {hash: "Špatné heslo", status: 401};
+        case "odhlasit-se":
+            if (json.token == undefined) { return badRequest("Chybějící pole v požadavku"); }
+            let dbResponse = await env.DB.prepare("DELETE FROM Token WHERE Token = ?")
+                        .bind(json.token).run();
+            dbResponse.status = 200;
+            return dbResponse;
         default:
             return notFound();
     }
