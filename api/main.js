@@ -27,7 +27,7 @@ async function ucet(path, json, env) {
             if (new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
             .encode(json.password + result.Salt))).toHex() == new Uint8Array(result.HesloHash).toHex()) {
                 const token = generateToken();
-                env.DB.prepare("INSERT INTO Token (Token, UserId) VALUES (?, ?)")
+                await env.DB.prepare("INSERT INTO Token (Token, UserId) VALUES (?, ?)")
                         .bind(token, result.UserId).run();
                 return {token: token, status: 200};
             }
