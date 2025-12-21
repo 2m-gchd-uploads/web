@@ -15,8 +15,13 @@ async function ucet(path, json, env) {
                                     { return badRequest("Chybějící pole v požadavku"); }
             let response = await env.DB.prepare("SELECT UserId, HesloHash, Salt FROM Ucet WHERE Email = ?")
                                                                             .bind(json.email).run();
-            response.status = 200;
-            return response;
+            if (response.results.length == 0) { return {error: "Uživatel neexistuje", status: 401}; }
+            let result = response.results[0];
+
+            let hash = new Uint8Array(await window.crypto.subtle.digest("SHA-256",
+                                new TextEncoder().encode(json.password + result.Salt))).toHex();
+            
+            return {"hash": hash, "status": 200};
         default:
             return notFound();
     }
