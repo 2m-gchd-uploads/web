@@ -49,7 +49,7 @@ async function ucet(path, json, env) {
             for (let i = 0; i < 6; i++) { kod += Math.floor(Math.random() * 10).toString(); }
             if ((await env.DB.prepare("UPDATE Ucet SET HesloResetKod = ? WHERE Email = ?")
                         .bind(kod, json.email).run()).meta.changed_db) {
-                const resend = new Resend(env.RESEND_API_KEY.get());
+                const resend = new Resend(await env.RESEND_API_KEY.get());
                 const { data, error } = await resend.emails.send({
                     from: "no-reply@2mgchd.qzz.io",
                     to: json.email,
@@ -59,7 +59,7 @@ async function ucet(path, json, env) {
                 if (!error) {
                     return {status: 200};
                 } else {
-                    return {error: error, key: env.RESEND_API_KEY.get(), status: 500}
+                    return {error: error, key: await env.RESEND_API_KEY.get(), status: 500}
                 }
             } else {
                 return {error: "Neplatný email", status: 401};
