@@ -21,6 +21,9 @@
       "secret_name": "2MGCHD_RESEND_API"
     }
   ],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "observability": {
     "logs": {
       "enabled": true,
