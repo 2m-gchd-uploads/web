@@ -32,7 +32,7 @@ async function ucet(path, json, env) {
                 return {token: token, status: 200};
             }
             
-            return {hash: "Špatné heslo", status: 401};
+            return {error: "Špatné heslo", status: 401};
         case "odhlasit-se":
             if (json.token == undefined) { return badRequest("Chybějící pole v požadavku"); }
             if ((await env.DB.prepare("DELETE FROM Token WHERE Token = ?")
@@ -40,6 +40,32 @@ async function ucet(path, json, env) {
                 return {status: 200};
             } else {
                 return {error: "Neplatný token", status: 401};
+            }
+        case "reset-hesla":
+            if (json.email == undefined) { return badRequest("Chybějící pole v požadavku"); }
+            let kod = "";
+            for (let i = 0; i < 6; i++) { kod += Math.floor(Math.random() * 10).toString(); }
+            if ((await env.DB.prepare("UPDATE Ucet SET HesloResetKod = ? WHERE Email = ?")
+                        .bind(kod, json.email).run()).meta.changed_db) {
+                let response = await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer" + env.RESEND_API_KEY,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        from: "no-reply@2mgchd.qzz.io",
+                        to: json.email,
+                        subject: "Obnova hesla",
+                        html: "<p>Kód pro obnovu hesla je <b>" + kod + "</b></p>"
+                    })});
+                if (response.ok) {
+                    return {status: 200};
+                } else {
+                    return {error: "Chyba při odesílání emailu", status: 500}
+                }
+            } else {
+                return {error: "Neplatný email", status: 401};
             }
         default:
             return notFound();
