@@ -14,6 +14,13 @@
       "database_id": "4694e1f0-42f3-4dff-9ba9-af2a94a3a4b0"
     }
   ],
+  "secrets_store_secrets": [
+    {
+      "binding": "RESEND_API_KEY",
+      "store_id": "c794378cc38a4fa8a669132ce24cc13b",
+      "secret_name": "2MGCHD_RESEND_API"
+    }
+  ]
   "observability": {
     "logs": {
       "enabled": true,
