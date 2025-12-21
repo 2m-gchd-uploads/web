@@ -1,3 +1,9 @@
+function generateToken() {
+    let array = [];
+    for (let i = 0; i < 190; i++) { array.push(Math.floor(Math.random() * 256)); }
+    return new Uint8Array(array).toBase64();
+}
+
 function makeResponse(jsonResponse) {
     return new Response(JSON.stringify(jsonResponse), {
             headers: { "Content-Type": "application/json" },
@@ -13,15 +19,20 @@ async function ucet(path, json, env) {
         case "prihlasit-se":
             if (json.email == undefined || json.password == undefined)
                                     { return badRequest("Chybějící pole v požadavku"); }
-            let response = await env.DB.prepare("SELECT UserId, HesloHash, Salt FROM Ucet WHERE Email = ?")
+            const response = await env.DB.prepare("SELECT UserId, HesloHash, Salt FROM Ucet WHERE Email = ?")
                                                                             .bind(json.email).run();
             if (response.results.length == 0) { return {error: "Uživatel neexistuje", status: 401}; }
-            let result = response.results[0];
+            const result = response.results[0];
 
-            let hash = new Uint8Array(await crypto.subtle.digest("SHA-256",
-                                new TextEncoder().encode(json.password + result.Salt))).toHex();
+            if (new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
+            .encode(json.password + result.Salt))).toHex() == new Uint8Array(result.HesloHash).toHex()) {
+                const token = generateToken();
+                env.DB.prepare("INSERT INTO Token (Token, UserId) VALUES (?, ?)")
+                        .bind(token, result.UserId).run();
+                return {token: token, status: 200};
+            }
             
-            return {"hash": hash, "status": 200};
+            return {hash: "Špatné heslo", status: 401};
         default:
             return notFound();
     }
