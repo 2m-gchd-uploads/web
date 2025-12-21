@@ -1,3 +1,5 @@
+import { Resend } from 'resend';
+
 function generateToken() {
     let array = [];
     for (let i = 0; i < 190; i++) { array.push(Math.floor(Math.random() * 256)); }
@@ -47,22 +49,17 @@ async function ucet(path, json, env) {
             for (let i = 0; i < 6; i++) { kod += Math.floor(Math.random() * 10).toString(); }
             if ((await env.DB.prepare("UPDATE Ucet SET HesloResetKod = ? WHERE Email = ?")
                         .bind(kod, json.email).run()).meta.changed_db) {
-                let response = await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": "Bearer " + env.RESEND_API_KEY,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        from: "no-reply@2mgchd.qzz.io",
-                        to: json.email,
-                        subject: "Obnova hesla",
-                        html: "<p>Kód pro obnovu hesla je <b>" + kod + "</b></p>"
-                    })});
-                if (response.ok) {
+                const resend = new Resend(env.RESEND_API_KEY);
+                const { data, error } = await resend.emails.send({
+                    from: "no-reply@2mgchd.qzz.io",
+                    to: json.email,
+                    subject: "Obnova hesla",
+                    html: "<p>Kód pro obnovu hesla je <b>" + kod + "</b></p>"
+                });
+                if (!error) {
                     return {status: 200};
                 } else {
-                    return {error: response.json(), status: response.status}
+                    return {error: error, status: 500}
                 }
             } else {
                 return {error: "Neplatný email", status: 401};
