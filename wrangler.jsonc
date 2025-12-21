@@ -7,6 +7,13 @@
     "directory": "./static",
     "binding": "ASSETS"
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "skolni-web",
+      "database_id": "4694e1f0-42f3-4dff-9ba9-af2a94a3a4b0"
+    }
+  ]
   "observability": {
     "logs": {
       "enabled": true,
