@@ -8,7 +8,7 @@ function makeResponse(jsonResponse) {
 function notFound() { return { error: "Nenalezeno", status: 404 }; }
 function badRequest(text) { return { error: text, status: 400 }; }
 
-async function ucet(path, json) {
+async function ucet(path, json, env) {
     switch (path[0]) {
         case "prihlasit-se":
             if (json.email == undefined || json.password == undefined)
@@ -31,11 +31,11 @@ export default {
 
         try { json = await (new Response(request.body).json());
         } catch (error) { return makeResponse(badRequest(error.message)); }
-        if (json === null) { return makeResponse(badRequest("body nesmí být null")); }
+        if (json === null) { return makeResponse(badRequest("JSON nesmí být null")); }
 
         switch (url[1]) {
             case "ucet":
-                return makeResponse(await ucet(url.slice(2), json));
+                return makeResponse(await ucet(url.slice(2), json, env));
             default:
                 return makeResponse(notFound());
         }
