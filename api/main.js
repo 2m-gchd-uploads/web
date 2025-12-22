@@ -67,11 +67,8 @@ async function ucet(path, json, env) {
         case "reset-hesla-token":
             if (json.email == undefined || json.kod == undefined)
                                     { return badRequest("Chybějící pole v požadavku"); }
-            //let novyKod = "";
-            //for (let i = 0; i < 6; i++) { novyKod += Math.floor(Math.random() * 10).toString(); }
-            //let results = await env.DB.prepare("UPDATE Ucet SET HesloResetKod = ? WHERE Email = ? AND HesloResetKod = ?")
-            //            .bind(novyKod, json.email, json.kod.toString()).run();
-            let results = await env.DB.prepare("SELECT * FROM Ucet").run();
+            let results = await env.DB.prepare("UPDATE Ucet SET HesloResetKod = NULL WHERE Email = ? AND HesloResetKod = ?")
+                        .bind(json.email, json.kod.toString()).run();
             results.status = 200;
             return results;
         default:
