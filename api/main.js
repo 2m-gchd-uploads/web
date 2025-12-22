@@ -1,9 +1,12 @@
 import { Resend } from 'resend';
 
-function generateToken() {
+async function generateToken(userId) {
     let array = [];
     for (let i = 0; i < 190; i++) { array.push(Math.floor(Math.random() * 256)); }
-    return new Uint8Array(array).toBase64();
+    let token = new Uint8Array(array).toBase64();
+    await env.DB.prepare("INSERT INTO Token (Token, UserId) VALUES (?, ?)")
+            .bind(token, result.userId).run();
+    return token;
 }
 
 function makeResponse(jsonResponse) {
@@ -28,10 +31,7 @@ async function ucet(path, json, env) {
 
             if (new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
             .encode(json.password + result.Salt))).toHex() == new Uint8Array(result.HesloHash).toHex()) {
-                const token = generateToken();
-                await env.DB.prepare("INSERT INTO Token (Token, UserId) VALUES (?, ?)")
-                        .bind(token, result.UserId).run();
-                return {token: token, status: 200};
+                return {token: await generateToken(result.UserId), status: 200};
             }
             
             return {error: "Špatné heslo", status: 401};
@@ -43,7 +43,7 @@ async function ucet(path, json, env) {
             } else {
                 return {error: "Neplatný token", status: 401};
             }
-        case "reset-hesla":
+        case "reset-hesla-kod":
             if (json.email == undefined) { return badRequest("Chybějící pole v požadavku"); }
             let kod = "";
             for (let i = 0; i < 6; i++) { kod += Math.floor(Math.random() * 10).toString(); }
@@ -59,11 +59,20 @@ async function ucet(path, json, env) {
                 if (!error) {
                     return {status: 200};
                 } else {
-                    return {error: error, key: await env.RESEND_API_KEY.get(), status: 500}
+                    return {error: "Chyba při odesílání emailu", status: 500}
                 }
             } else {
                 return {error: "Neplatný email", status: 401};
             }
+        case "reset-hesla-token":
+            if (json.email == undefined || json.kod == undefined)
+                                    { return badRequest("Chybějící pole v požadavku"); }
+            let novyKod = "";
+            for (let i = 0; i < 6; i++) { novyKod += Math.floor(Math.random() * 10).toString(); }
+            let results = await env.DB.prepare("UPDATE Ucet SET HesloResetKod = ? WHERE Email = ? AND HesloResetKod = ?")
+                        .bind(novyKod, json.email, json.kod).run();
+            results.status = 200;
+            return results;
         default:
             return notFound();
     }
