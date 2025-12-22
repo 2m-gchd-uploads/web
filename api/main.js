@@ -1,19 +1,19 @@
 import { Resend } from 'resend';
 
-async function generateToken(userId) {
+async function generateToken(env, userId) {
     let array = [];
     for (let i = 0; i < 190; i++) { array.push(Math.floor(Math.random() * 256)); }
     let token = new Uint8Array(array).toBase64();
     await env.DB.prepare("INSERT INTO Token (Token, UserId) VALUES (?, ?)")
-            .bind(token, result.userId).run();
+            .bind(token, userId).run();
     return token;
 }
 
-async function cancelToken(token) {
+async function cancelToken(env, token) {
     return (await env.DB.prepare("DELETE FROM Token WHERE Token = ?").bind(token).run()).meta.changed_db;
 }
 
-async function getUserId(email) {
+async function getUserId(env, email) {
     let response = await env.DB.prepare("SELECT UserId FROM Ucet WHERE Email = ?").bind(email).run();
     if (response.results.length == 0) { return null; }
     return response.results[0].UserId;
@@ -41,13 +41,13 @@ async function ucet(path, json, env) {
 
             if (new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
             .encode(json.password + result.Salt))).toHex() == new Uint8Array(result.HesloHash).toHex()) {
-                return {token: await generateToken(result.UserId), status: 200};
+                return {token: await generateToken(env, result.UserId), status: 200};
             }
             
             return {error: "Špatné heslo", status: 401};
         case "odhlasit-se":
             if (json.token == undefined) { return badRequest("Chybějící pole v požadavku"); }
-            if (cancelToken(json.token)) {
+            if (cancelToken(env, json.token)) {
                 return {status: 200};
             } else {
                 return {error: "Neplatný token", status: 401};
@@ -78,7 +78,7 @@ async function ucet(path, json, env) {
                                     { return badRequest("Chybějící pole v požadavku"); }
             if ((await env.DB.prepare("UPDATE Ucet SET HesloResetKod = NULL WHERE Email = ? AND HesloResetKod = ?")
                         .bind(json.email, json.kod.toString()).run()).meta.changed_db) {
-                return {token: await generateToken(await getUserId(json.email)), status: 200};
+                return {token: await generateToken(env, await getUserId(env, json.email)), status: 200};
             } else {
                 return {error: "Neplatný kód", status: 401};
             }
