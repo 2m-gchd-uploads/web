@@ -31,7 +31,9 @@ async function changePassword(env, userId, password) {
     let hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
             .encode(password + salt))));
     await env.DB.prepare("UPDATE Ucet SET HesloHash = ?, Salt = ? WHERE UserId = ?")
-                        .bind(hash, salt, userId).run();    
+                        .bind(hash, salt, userId).run();
+    await env.DB.prepare("DELETE FROM Token WHERE UserId = ?")
+                        .bind(userId).run();;
 }
 
 function makeResponse(jsonResponse) {
