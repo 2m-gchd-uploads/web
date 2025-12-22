@@ -102,7 +102,8 @@ async function ucet(path, json, env) {
                             { return badRequest("Chybějící pole v požadavku"); }
             let userId = await checkToken(env, json.token);
             if (userId != null) {
-                changePassword(env, userId, json.password);
+                await changePassword(env, userId, json.password);
+                return {status: 200};
             } else {
                 return {error: "Neplatný token", status: 401};
             }
