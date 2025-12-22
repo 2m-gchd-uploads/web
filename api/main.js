@@ -9,6 +9,16 @@ async function generateToken(userId) {
     return token;
 }
 
+async function cancelToken(token) {
+    return (await env.DB.prepare("DELETE FROM Token WHERE Token = ?").bind(token).run()).meta.changed_db;
+}
+
+async function getUserId(email) {
+    let response = await env.DB.prepare("SELECT UserId FROM Ucet WHERE Email = ?").bind(email).run();
+    if (response.results.length == 0) { return null; }
+    return response.results[0].UserId;
+}
+
 function makeResponse(jsonResponse) {
     return new Response(JSON.stringify(jsonResponse), {
             headers: { "Content-Type": "application/json" },
@@ -37,8 +47,7 @@ async function ucet(path, json, env) {
             return {error: "Špatné heslo", status: 401};
         case "odhlasit-se":
             if (json.token == undefined) { return badRequest("Chybějící pole v požadavku"); }
-            if ((await env.DB.prepare("DELETE FROM Token WHERE Token = ?")
-                        .bind(json.token).run()).meta.changed_db) {
+            if (cancelToken(json.token)) {
                 return {status: 200};
             } else {
                 return {error: "Neplatný token", status: 401};
@@ -67,10 +76,12 @@ async function ucet(path, json, env) {
         case "reset-hesla-token":
             if (json.email == undefined || json.kod == undefined)
                                     { return badRequest("Chybějící pole v požadavku"); }
-            let results = await env.DB.prepare("UPDATE Ucet SET HesloResetKod = NULL WHERE Email = ? AND HesloResetKod = ?")
-                        .bind(json.email, json.kod.toString()).run();
-            results.status = 200;
-            return results;
+            if ((await env.DB.prepare("UPDATE Ucet SET HesloResetKod = NULL WHERE Email = ? AND HesloResetKod = ?")
+                        .bind(json.email, json.kod.toString()).run()).meta.changed_db) {
+                return {token: await generateToken(await getUserId(json.email)), status: 200};
+            } else {
+                return {error: "Neplatný kód", status: 401};
+            }
         default:
             return notFound();
     }
