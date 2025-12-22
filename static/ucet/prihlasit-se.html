@@ -21,7 +21,12 @@
           .then((response) => {
             console.log(response);
             if (response.ok) {
-              response.json().then(alert);
+              response.json().then((json) => {
+                window.cookieStore.set("token", json.token);
+                let redirect = new URL(window.location).searchParams.get("redirect");
+                if (redirect == null) { redirect = "https://2mgchd.qzz.io/"; }
+                window.location = redirect;
+              });
             } else {
               response.json().then((json) => {document.getElementById("error").innerText = json.error;})
             }
