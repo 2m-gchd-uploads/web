@@ -19,6 +19,21 @@ async function getUserId(env, email) {
     return response.results[0].UserId;
 }
 
+async function checkToken(env, token) {
+    let response = await env.DB.prepare("SELECT UserId FROM Token WHERE Token = ?").bind(token).run();
+    if (response.results.length == 0) { return null; }
+    return response.results[0].UserId;
+}
+
+async function changePassword(env, userId, password) {
+    let salt = "";
+    for (let i = 0; i < 16; i++) { salt += Math.floor(Math.random() * 36).toString(36); }
+    let hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
+            .encode(password + salt))));
+    await env.DB.prepare("UPDATE Ucet SET HesloHash = ?, Salt = ? WHERE UserId = ?")
+                        .bind(hash, salt, userId).run();    
+}
+
 function makeResponse(jsonResponse) {
     return new Response(JSON.stringify(jsonResponse), {
             headers: { "Content-Type": "application/json" },
@@ -47,7 +62,7 @@ async function ucet(path, json, env) {
             return {error: "Špatné heslo", status: 401};
         case "odhlasit-se":
             if (json.token == undefined) { return badRequest("Chybějící pole v požadavku"); }
-            if (cancelToken(env, json.token)) {
+            if (await cancelToken(env, json.token)) {
                 return {status: 200};
             } else {
                 return {error: "Neplatný token", status: 401};
@@ -81,6 +96,15 @@ async function ucet(path, json, env) {
                 return {token: await generateToken(env, await getUserId(env, json.email)), status: 200};
             } else {
                 return {error: "Neplatný kód", status: 401};
+            }
+        case "zmena-hesla":
+            if (json.token == undefined || json.password == undefined)
+                            { return badRequest("Chybějící pole v požadavku"); }
+            let userId = await checkToken(env, json.token);
+            if (userId != null) {
+                changePassword(env, userId, json.password);
+            } else {
+                return {error: "Neplatný token", status: 401};
             }
         default:
             return notFound();
