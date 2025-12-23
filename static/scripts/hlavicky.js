@@ -28,4 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     link.rel = "stylesheet";
     link.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css";
     document.head.append(link);
+    let script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
+    document.body.append(script);
 });
