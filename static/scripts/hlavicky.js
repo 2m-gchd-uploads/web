@@ -16,7 +16,7 @@ function constructMenuLink(name, href) {
     return element;
 }
 
-document.addEventListener("load", () => {
+document.addEventListener("DOMContentLoaded", () => {
     let element = document.createElement("div");
     element.innerHTML = TEMPLATE;
     element = element.firstChild;
