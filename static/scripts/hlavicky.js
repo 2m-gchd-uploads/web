@@ -3,6 +3,16 @@ const LINKS = {"Domů": "/"};
 const ACCOUNT_LINKS_OUT = {"Přihlásit se": "/ucet/prihlasit-se"};
 const ACCOUNT_LINKS_IN = {"Domů": "/", "DIVIDER": "", "Odhlásit se": "javascript:odhlasit()"};
 
+async function odhlasit() {
+    await fetch("/api/ucet/odhlasit-se", {
+        method: "POST",
+        body: JSON.stringify({
+            token: (await window.cookieStore.get("token")).value
+        })})
+    await window.cookieStore.delete("token");
+    window.location.reload();
+}
+
 function constructMenuLink(name, href) {
     let element = document.createElement("li");
     element.append(document.createElement("a"));
