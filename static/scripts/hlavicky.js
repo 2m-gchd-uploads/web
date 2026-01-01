@@ -1,16 +1,19 @@
-const TEMPLATE = '<header class="p-3 mb-3 border-bottom"><div class="container"><div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start"><ul class="nav col-12 col-lg-auto me-lg-auto justify-content-center"></ul><div><a class="text-reset bi bi-person-fill fs-4" data-bs-toggle="dropdown"></a><ul class="dropdown-menu text-small"></ul></div></div></div></header>';
+const HEADER_TEMPLATE = '<header class="p-3 bg-body-secondary"><div class="container"><div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start"><ul class="nav col-12 col-lg-auto me-lg-auto justify-content-center"></ul><div><a class="text-reset bi bi-person-fill fs-4" data-bs-toggle="dropdown"></a><ul class="dropdown-menu text-small"></ul></div></div></div></header>';
 const LINKS = {"Domů": "/"};
-const ACCOUNT_LINKS_OUT = {"Přihlásit se": "/ucet/prihlasit-se"};
+const ACCOUNT_LINKS_OUT = {"Přihlásit se": `/ucet/prihlasit-se?redirect=${encodeURIComponent(window.location)}`};
 const ACCOUNT_LINKS_IN = {"Domů": "/", "DIVIDER": "", "Odhlásit se": "javascript:odhlasit()"};
 
-async function odhlasit() {
-    await fetch("/api/ucet/odhlasit-se", {
-        method: "POST",
-        body: JSON.stringify({
-            token: (await window.cookieStore.get("token")).value
-        })})
-    await window.cookieStore.delete("token");
-    window.location.reload();
+function loadCSS(href) {
+    let link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    document.head.append(link);
+}
+
+function loadJS(href) {
+    let script = document.createElement("script");
+    script.src = href;
+    document.body.append(script);
 }
 
 function constructMenuLink(name, href) {
@@ -44,7 +47,7 @@ function constructAccountLink(name, href) {
 
 document.addEventListener("DOMContentLoaded", async () => {
     let element = document.createElement("div");
-    element.innerHTML = TEMPLATE;
+    element.innerHTML = HEADER_TEMPLATE;
     element = element.firstChild;
 
     for (const [name, href] of Object.entries(LINKS)) {
@@ -60,11 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.body.prepend(element);
 
-    let link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css";
-    document.head.append(link);
-    let script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
-    document.body.append(script);
+    loadCSS("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css");
+    loadJS("https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js");
+    loadJS("/scripts/api.js")
 });

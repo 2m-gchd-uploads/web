@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { auth } from './ucet.js';
 
 async function generateToken(env, userId) {
     let array = [];
@@ -116,6 +117,7 @@ async function ucet(path, json, env) {
 
 export default {
   async fetch(request, env, ctx) {
+    auth();
     const url = new URL(request.url).pathname.split("/").slice(1);
 
     if (url[0] == "api") {
