@@ -45,7 +45,6 @@ async function ucet(req) {
     if (!(req.path[0] == "api" && req.path[1] == "ucet")) { return; }
     switch (req.path[2]) {
         case "prihlasit-se":
-            console.log(req.json);
             if (req.json.email == undefined || req.json.password == undefined)
                             { req.makeResponse(badRequest("Chybějící pole v požadavku")); break; }
             const response = await req.env.DB.prepare("SELECT UserId, HesloHash, Salt FROM Ucet WHERE Email = ?")
@@ -55,6 +54,10 @@ async function ucet(req) {
                 break;
             }
             const result = response.results[0];
+
+            console.log(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
+            .encode(req.json.password + result.Salt))).toHex());
+            console.log(new Uint8Array(result.HesloHash).toHex());
 
             if (new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
             .encode(req.json.password + result.Salt))).toHex() == new Uint8Array(result.HesloHash).toHex()) {
