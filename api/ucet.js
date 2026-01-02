@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { badRequest, notFound } from './util';
 
 async function auth(req) {
     if (req.json.token == undefined) { return; }
