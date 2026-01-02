@@ -46,27 +46,39 @@ async function ucet(req) {
     switch (req.path[2]) {
         case "prihlasit-se":
             if (req.json.email == undefined || req.json.password == undefined)
-                                { req.makeResponse(badRequest("Chybějící pole v požadavku")); }
+                            { req.makeResponse(badRequest("Chybějící pole v požadavku")); break; }
             const response = await req.env.DB.prepare("SELECT UserId, HesloHash, Salt FROM Ucet WHERE Email = ?")
                                                                             .bind(req.json.email).run();
-            if (response.results.length == 0) { req.makeResponse({error: "Uživatel neexistuje", status: 401}); }
+            if (response.results.length == 0) {
+                req.makeResponse({error: "Uživatel neexistuje", status: 401});
+                break;
+            }
             const result = response.results[0];
 
             if (new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder()
             .encode(req.json.password + result.Salt))).toHex() == new Uint8Array(result.HesloHash).toHex()) {
                 req.makeResponse({token: await generateToken(req.env, result.UserId), status: 200});
+                break;
             }
             
             req.makeResponse({error: "Špatné heslo", status: 401});
+            break;
         case "odhlasit-se":
-            if (req.json.token == undefined) { req.makeResponse(badRequest("Chybějící pole v požadavku")); }
+            if (req.json.token == undefined) {
+                req.makeResponse(badRequest("Chybějící pole v požadavku"));
+                break;
+            }
             if (await cancelToken(req.env, req.json.token)) {
                 req.makeResponse({status: 200});
             } else {
                 req.makeResponse({error: "Neplatný token", status: 401});
             }
+            break;
         case "reset-hesla-kod":
-            if (req.json.email == undefined) { req.makeResponse(badRequest("Chybějící pole v požadavku")); }
+            if (req.json.email == undefined) {
+                req.makeResponse(badRequest("Chybějící pole v požadavku"));
+                break;
+            }
             let kod = "";
             for (let i = 0; i < 6; i++) { kod += Math.floor(Math.random() * 10).toString(); }
             if ((await req.env.DB.prepare("UPDATE Ucet SET HesloResetKod = ? WHERE Email = ?")
@@ -83,29 +95,40 @@ async function ucet(req) {
                 } else {
                     req.makeResponse({error: "Chyba při odesílání emailu", status: 500});
                 }
+                break;
             } else {
                 req.makeResponse({error: "Neplatný email", status: 401});
+                break;
             }
         case "reset-hesla-token":
             if (req.json.email == undefined || req.json.kod == undefined)
-                                    { req.makeResponse(badRequest("Chybějící pole v požadavku")); }
+            { 
+                req.makeResponse(badRequest("Chybějící pole v požadavku"));
+                break;
+            }
             if ((await req.env.DB.prepare("UPDATE Ucet SET HesloResetKod = NULL WHERE Email = ? AND HesloResetKod = ?")
                         .bind(req.json.email, req.json.kod.toString()).run()).meta.changed_db) {
                 req.makeResponse({token: await generateToken(req.env, await getUserId(req.env, req.json.email)), status: 200});
             } else {
                 req.makeResponse({error: "Neplatný kód", status: 401});
             }
+            break;
         case "zmena-hesla":
             if (req.json.password == undefined)
-                            { req.makeResponse(badRequest("Chybějící pole v požadavku")); }
+            {
+                req.makeResponse(badRequest("Chybějící pole v požadavku"));
+                break;
+            }
             if (req.userId != null) {
                 await changePassword(req.env, req.userId, req.json.password);
                 req.makeResponse({status: 200});
             } else {
                 req.makeResponse({error: "Neplatný token", status: 401});
             }
+            break;
         default:
             req.makeResponse(notFound());
+            break;
     }
 }
 
