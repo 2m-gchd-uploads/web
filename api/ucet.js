@@ -41,7 +41,7 @@ async function changePassword(env, userId, password) {
 }
 
 async function ucet(req) {
-    if (req.path[0] == "api" && req.path[1] == "ucet") { return; }
+    if (!(req.path[0] == "api" && req.path[1] == "ucet")) { return; }
     switch (req.path[2]) {
         case "prihlasit-se":
             if (req.json.email == undefined || req.json.password == undefined)
