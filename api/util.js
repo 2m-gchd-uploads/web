@@ -3,7 +3,7 @@ function badRequest(text) { return { error: text, status: 400 }; }
 
 async function makeResponse(req) {
     defineFunction(req, "makeResponse", (json) => {
-        this.response = new Response(JSON.stringify(json), {
+        req.response = new Response(JSON.stringify(json), {
             headers: { "Content-Type": "application/json" },
             status: json.status
         });
